@@ -1,0 +1,4 @@
+[debug] > Exec(scalaVersion, None, None)
+[debug] Evaluating tasks: scalaVersion
+[info] 3.2.2
+[debug] > Exec(idea-shell, None, None)
