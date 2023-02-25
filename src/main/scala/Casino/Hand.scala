@@ -16,3 +16,4 @@ class Hand(var cards: Buffer[Card]):
   override def toString() =
     cards.toString()
 
+end Hand
