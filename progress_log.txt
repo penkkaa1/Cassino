@@ -1,0 +1,14 @@
+1.3.2023
+Writing this at the start of week 2, after exam week.
+Last week I got most of the basic classes programmed, or at least the first versions of them. I already found things I needed to add,
+or things I actually did not need whilst programming these classes. I based the classes mostly on the UML-drawing which I did. The Game-class
+is still a work-in-progress. I did not have a clear vision on which functions etc. I could program at this phase. I will look into that.
+
+The functions I programmed were mostly just removing and adding cards to the deck, hand and table. But I also put in some effort to help
+myself and making the program more aesthetically pleasing by focusing on the toString methods, for instance for the Card class.
+
+I tested almost all of the functions I did in just Scala REPL, and they seem to be working fine. Granted, they are very basic functions,
+but still, progress. Next step would be finish up Game-class, and then move on to the human-algorithm / game portion of this project.
+There is a bit of pressure coming from other classes in real life. We started Programming 2, a new Physics class, we have the Databases
+course going on, so I try to update this project whenever I have free time. Unfortunately, free time seems a bit scarce at the moment.
+With so many deadlines during the week (about 4-6), we will see how the schedule holds up.
