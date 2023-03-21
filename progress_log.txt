@@ -12,3 +12,9 @@ but still, progress. Next step would be finish up Game-class, and then move on t
 There is a bit of pressure coming from other classes in real life. We started Programming 2, a new Physics class, we have the Databases
 course going on, so I try to update this project whenever I have free time. Unfortunately, free time seems a bit scarce at the moment.
 With so many deadlines during the week (about 4-6), we will see how the schedule holds up.
+
+
+21.3.2023
+I'm falling behind the schedule at the moment, but I'm trying to catch up. I tried implementing a bare-bones version of the Game, and started testing the text-based interface aswell.
+Ran into some problems, and I also need to add exceptions. At the moment the only acceptable case is the one with no corruptions etc etc.
+Programming 2 has taken a large portion of my "free" time, and I also attended Titeenit on the last weekend. I will try to catch up on the following weeks.

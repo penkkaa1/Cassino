@@ -1,9 +1,9 @@
 package Casino
 import scala.collection.mutable.Buffer
 
-class Table(cards: Buffer[Card], val players: Buffer[Player]):
+class Table(val cards: Buffer[Card], val players: Buffer[Player]):
 
-  def addCardsToTable(card: Card) =
+  def addCardToTable(card: Card) =
     cards.append(card)
     println(s"Card '$card' added to the table")
 

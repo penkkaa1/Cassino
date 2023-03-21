@@ -1,6 +1,6 @@
 package Casino
 
-class Player(name: String, hand: Hand, stack: Stack):
+class Player(name: String, val hand: Hand, stack: Stack):
 
   var points = 0
 
