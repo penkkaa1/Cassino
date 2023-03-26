@@ -7,9 +7,22 @@ class Deck(var cards: Buffer[Card]):
     val found = cards.find( c => c.suit == card.suit && c.value == card.value)
     if found.isDefined then
       found.foreach( c => cards.remove(cards.indexOf(c) ) )
-      println("Card deleted from deck")
+      //println("Card deleted from deck")
     else
       println(s"Card '$card' not found in this deck")
+
+  def selectRandomCards(amount: Int): Buffer[Card] =
+    var output = Buffer[Card]()
+    for i <- 0 until amount do
+      var randomCard = cards(Random.nextInt(cards.length))
+      output = output += randomCard
+    for card <- output do
+      this.removeCard(card)
+    //COULD HAVE A BETTER IMPLEMENTATION, COULD HAVE MULTIPLES OF CARDS
+    output
+    
+
+  
 
   def shuffle() =
     this.cards = Random.shuffle(this.cards)
@@ -18,6 +31,15 @@ class Deck(var cards: Buffer[Card]):
     cards.toString()
 
 end Deck
+
+//@main def pakkaTestaus() =
+//  val testiPakka = Deck(allCards)
+//  println(testiPakka.cards.length)
+//  val pöytä = testiPakka.selectRandom4()
+//  println(testiPakka.cards.length)
+//  println(pöytä.mkString(", "))
+//  for card <- pöytä do
+//    testiPakka.cards.contains(card)
 
 
 //All of the cards individually
@@ -52,7 +74,7 @@ val kingS = Card("KnS", 13, 13)
 val aceS = Card("AcS", 14, 1)
 
 //diamonds
-val twoD = Card("02D", 15, 2)
+val twoD = Card("02D", 2, 2)
 val threeD  = Card("03D", 3, 3)
 val fourD = Card("04D", 4, 4)
 val fiveD = Card("05D", 5, 5)
@@ -68,7 +90,7 @@ val aceD = Card("AcD", 14, 1)
 
 
 //clubs
-val twoC = Card("02C", 15, 2)
+val twoC = Card("02C", 2, 2)
 val threeC  = Card("03C", 3, 3)
 val fourC = Card("04C", 4, 4)
 val fiveC = Card("05C", 5, 5)
@@ -76,13 +98,13 @@ val sixC = Card("06C", 6, 6)
 val sevenC = Card("07C", 7, 7)
 val eightC = Card("08C", 8, 8)
 val nineC = Card("09C", 9, 9)
-val tenC = Card("10C", 16, 10)
+val tenC = Card("10C", 10, 10)
 val jackC = Card("JkC", 11, 11)
 val queenC = Card("QnC", 12, 12)
 val kingC = Card("KnC", 13, 13)
 val aceC = Card("AcC", 14, 1)
 
-val allCards = Buffer(
+val allCards = Deck(Buffer(
   twoH, threeH, fourH, fiveH,
   sixH, sevenH, eightH, nineH,
   tenH, jackH, queenH, kingH, aceH,
@@ -98,4 +120,4 @@ val allCards = Buffer(
   twoC, threeC, fourC, fiveC,
   sixC, sevenC, eightC, nineC,
   tenC, jackC, queenC, kingC, aceC
-)
+))
