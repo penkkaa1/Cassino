@@ -8,7 +8,8 @@ import scala.util.control.Breaks._
 
 
   //val testDeck = Deck(allCards)
-  val testDeck = Deck(Buffer(twoH,threeC,fourH,fiveD,sixD,sevenC,eightS,nineS,tenH,jackC,queenS,kingH,aceD))
+  val testDeck = Deck(Buffer(twoH, twoD, twoC, twoS, threeH, threeD, threeS, threeC, sixC, sixD, sixS, sixH, sixC, sixD, sixS, sixH))
+  //val testDeck = Deck(Buffer(twoH,threeC,fourH,fiveD,sixD,sevenC,eightS,nineS,tenH,jackC,queenS,kingH,aceD, aceC, eightD, fourS, twoC))
   val player1Stack = Stack(Buffer[Card]())
   val player2Stack = Stack(Buffer[Card]())
   val player1Hand = Hand(testDeck.selectRandomCards(3)) //3 because first player gets a card when the game is initialized
@@ -74,8 +75,6 @@ import scala.util.control.Breaks._
   var playerSpades = players.map( p => (p, p.stack.countSpades() ) )
   if !playerSpades.forall( p => p._2 == 0 ) then findMax(playerSpades).foreach( p => testiPeli.table.addPoints(p,2) )
 
-
-  //NEED TO IMPLEMENT MÖKKIS STILL
 
   players.foreach( p => if p.stack.hasCard(tenC) then testiPeli.table.addPoints(p, 2) )
   players.foreach( p => if p.stack.hasCard(twoS) then testiPeli.table.addPoints(p, 1) )

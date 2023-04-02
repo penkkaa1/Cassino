@@ -15,14 +15,22 @@ class Game(val table: Table, val deck: Deck):
         player.addMultipleCardsToStack(tableCards)
         player.addSingleCardToStack(playedCard)
         player.hand.removeCard(playedCard)
-        println(s"\nPlayer ${player.name} played $playedCard, and recieved cards: ${tableCards.mkString(" and ")}!")
+        if table.cards.isEmpty then
+          table.addPoints(player, 1)
+          println(s"\nPlayer ${player.name} played $playedCard, and recieved cards: ${tableCards.mkString(" and ")}.\nThey also got an extra point for sweeping the table!")
+        else
+          println(s"\nPlayer ${player.name} played $playedCard, and recieved cards: ${tableCards.mkString(" and ")}!")
         break
       else if playedCard.valueInHand == tableCard.valueInTable then
         table.removeSingleCard(tableCard)
         player.addSingleCardToStack(tableCard)
         player.addSingleCardToStack(playedCard)
         player.hand.removeCard(playedCard)
-        println(s"\nPlayer ${player.name} played $playedCard, and recieved ${tableCard}!")
+        if table.cards.isEmpty then
+          table.addPoints(player, 1)
+          println(s"\nPlayer ${player.name} played $playedCard, recieved ${tableCard}, and got an extra point for sweeping the table!")
+        else
+          println(s"\nPlayer ${player.name} played $playedCard, and recieved ${tableCard}!")
         break
       else
         player.hand.removeCard(playedCard)
