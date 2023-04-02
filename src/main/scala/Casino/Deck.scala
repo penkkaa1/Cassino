@@ -22,8 +22,6 @@ class Deck(var cards: Buffer[Card]):
     output
     
 
-  
-
   def shuffle() =
     this.cards = Random.shuffle(this.cards)
 
