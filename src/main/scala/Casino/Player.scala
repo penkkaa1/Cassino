@@ -1,7 +1,7 @@
 package Casino
 import scala.collection.mutable.Buffer
 
-class Player(val name: String, val hand: Hand, stack: Stack):
+class Player(val name: String, val hand: Hand, val stack: Stack):
 
   var points = 0
 

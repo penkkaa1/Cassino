@@ -19,8 +19,8 @@ class Table(val cards: Buffer[Card], val players: Buffer[Player]):
     else
       println(s"Card '$card' not found is not on the table")
 
-  def addPoints(player: Player) =
-    player.points += 1
+  def addPoints(player: Player, amount: Int) =
+    player.points += amount
 
   override def toString() =
     s"\nPlayers: $players\nCards on table: $cards"
