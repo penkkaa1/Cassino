@@ -17,7 +17,7 @@ class Game(val table: Table, val deck: Deck):
         player.addSingleCardToStack(playedCard)                       // case if multiple cards are chosen to be picked up from the table
         player.hand.removeCard(playedCard)
         if table.cards.isEmpty then                                   // checking if last pickup was a sweep
-          table.addPoints(player, 1)
+          player.addPoints(1)
           println(s"\nPlayer ${player.name} played $playedCard, and recieved cards: ${tableCards.mkString(" and ")}.\nThey also got an extra point for sweeping the table!")
         else
           println(s"\nPlayer ${player.name} played $playedCard, and recieved cards: ${tableCards.mkString(" and ")}!")
@@ -29,7 +29,7 @@ class Game(val table: Table, val deck: Deck):
         player.addSingleCardToStack(playedCard)                       // case if single card is chosen to be picked up from the table
         player.hand.removeCard(playedCard)
         if table.cards.isEmpty then                                   // checking if last pickup was a sweep
-          table.addPoints(player, 1)
+          player.addPoints(1)
           println(s"\nPlayer ${player.name} played $playedCard, recieved ${tableCard}, and got an extra point for sweeping the table!")
         else
           println(s"\nPlayer ${player.name} played $playedCard, and recieved ${tableCard}!")

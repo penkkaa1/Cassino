@@ -2,7 +2,7 @@ package Casino
 import scala.collection.mutable.Buffer
 import scala.util.Random
 
-class Deck(var cards: Buffer[Card]):
+case class Deck(var cards: Buffer[Card]):
   def removeCard(card: Card) =
     val found = cards.find( c => c.suit == card.suit && c.value == card.value)
     if found.isDefined then
@@ -13,31 +13,21 @@ class Deck(var cards: Buffer[Card]):
 
   def selectRandomCards(amount: Int): Buffer[Card] =
     var output = Buffer[Card]()
-    for i <- 0 until amount do
-      var randomCard = cards(Random.nextInt(cards.length))
-      output = output += randomCard
+    this.shuffle()
+    output = this.cards.take(amount)
     for card <- output do
       this.removeCard(card)
-    //COULD HAVE A BETTER IMPLEMENTATION, COULD HAVE MULTIPLES OF CARDS
     output
     
 
   def shuffle() =
     this.cards = Random.shuffle(this.cards)
 
-  override def toString() =
-    cards.toString()
+  //override def toString() =
+  //  cards.toString()
 
 end Deck
 
-//@main def pakkaTestaus() =
-//  val testiPakka = Deck(allCards)
-//  println(testiPakka.cards.length)
-//  val pöytä = testiPakka.selectRandom4()
-//  println(testiPakka.cards.length)
-//  println(pöytä.mkString(", "))
-//  for card <- pöytä do
-//    testiPakka.cards.contains(card)
 
 
 //All of the cards individually
