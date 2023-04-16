@@ -13,6 +13,28 @@ import scala.util.{Try, Success, Failure}
   // SAVING AND LOADING
   // GUI
 
+  var startingInput = readLine(s"\nHello, welcome to Cassino. \nStart a new game by entering '/start'\nLoad a previous game by entering '/load'\n-> ")
+
+  def isFirstLetterSlash(input: String) = Try {input.head == '/'}
+
+  def isMatch(input: String): String =
+    input.split(" ").headOption match
+      case Some("/load") => 
+                            "mogadishu"
+      case Some("/start") => "valid. continue"
+      case _ => "invalid"
+
+  var commandTest = isFirstLetterSlash(startingInput)
+  var matchTest = isMatch(startingInput)
+
+  while commandTest.isFailure || matchTest == "invalid" do
+    startingInput = readLine(s"\nUnknown command '$startingInput'\nStart a new game by entering '/start'\nLoad a previous game by entering '/load'\n-> ")
+    commandTest = isFirstLetterSlash(startingInput)
+    matchTest = isMatch(startingInput)
+
+  println("\n\ngot through, starting new game")
+  println(s"Matchtest: $matchTest")
+
   var originalDeck = allCards
   //var originalDeck = Deck(Buffer(twoH,threeC,fourH,fiveD,sixD,sevenC,eightS,nineS,tenH,jackC,queenS,kingH,aceD, aceC, eightD, fourS, twoC))
   //val originalDeck = Deck(Buffer(twoH, twoD, twoC, twoS, threeH, threeD, threeS, threeC, sixC, sixD, sixS, sixH, sixC, sixD, sixS, sixH))           //different Decks for testing purposes
