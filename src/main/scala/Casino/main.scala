@@ -10,28 +10,23 @@ import scala.util.{Try, Success, Failure}
 
 @main def run() =
   // MULTIPLE PAIRS
-  // SAVING AND LOADING
   // GUI
 
   var startingInput = readLine(s"\nHello, welcome to Cassino. \nStart a new game by entering '/start'\nLoad a previous game by entering '/load'\n-> ")
 
-  def isFirstLetterSlash(input: String) = Try {input.head == '/'}
-
   def isMatch(input: String): String =
     input.split(" ").headOption match
-      case Some("/load")  => "mogadishu"
-      case Some("/start") => "valid. continue"
+      case Some("/load")  => "load"
+      case Some("/start") => "mozambique"
       case _ => "invalid"
 
-  var commandTest = isFirstLetterSlash(startingInput)
   var matchTest = isMatch(startingInput)
 
-  while commandTest.isFailure || matchTest == "invalid" do
+  while matchTest == "invalid" do //commandTest.isFailure ||
     startingInput = readLine(s"\nUnknown command '$startingInput'\nStart a new game by entering '/start'\nLoad a previous game by entering '/load'\n-> ")
-    commandTest = isFirstLetterSlash(startingInput)
     matchTest = isMatch(startingInput)
 
-  if matchTest == "mogadishu" then
+  if matchTest == "load" then
     loadGameFromFile()
     System.exit(0)
 
@@ -86,6 +81,7 @@ import scala.util.{Try, Success, Failure}
   var turn = -1
   var previousPlayer = currentGame.table.players.head
 
+  println("\nNOTE : You can pause and save the game at anytime with '/halt'")
 
     while !{currentGame.table.players.exists( _.points >= 16)} do {       // a new round if no player has 16 points
       playersPoints = players.map( p => (p, p.points) )                   // update player points
@@ -116,6 +112,11 @@ import scala.util.{Try, Success, Failure}
             var handCardIndex = 0                                                                   // temporary placeholder
             var userInput = readLine(s"What card do you want to play? Input the number next to the card.\nYour hand : ${handCardsIndexed.mkString(" | ")}\nCurrent table : ${currentGame.table.cards.mkString(" | ")}\n-> ").trim.replaceAll(" ", "")
 
+            while userInput == "/halt" do
+              halt(players, turn, deck, originalDeck, currentGame.table.cards)
+              println(s"\nPlayer is now : ${currentPlayer.name}")
+              userInput = readLine(s"What card do you want to play? Input the number next to the card.\nYour hand : ${handCardsIndexed.mkString(" | ")}\nCurrent table : ${currentGame.table.cards.mkString(" | ")}\n-> ").trim.replaceAll(" ", "")
+
             def tryIsThisInRange(input: String) = Try {
               currentPlayer.hand.cards(input.toInt)                                                 // helper function for exceptions
             }
@@ -128,6 +129,10 @@ import scala.util.{Try, Success, Failure}
                 userInput = readLine(s"\nUnknown number : '$userInput'. Please input the integer next to the card you want to play.\nYour hand : ${handCardsIndexed.mkString(" | ")}\nCurrent table : ${currentGame.table.cards.mkString(" | ")}\n-> ").trim.replaceAll(" ", "")
               else if rangeTest.isFailure then
                 userInput = readLine(s"\nGiven number '$userInput' is not in the acceptable range. Please input the integer next to the card you want to play.\nYour hand : ${handCardsIndexed.mkString(" | ")}\nCurrent table : ${currentGame.table.cards.mkString(" | ")}\n-> ").trim.replaceAll(" ", "")
+              while userInput == "/halt" do
+                halt(players, turn, deck, originalDeck, currentGame.table.cards)
+                println(s"\nPlayer is now : ${currentPlayer.name}")
+                userInput = readLine(s"What card do you want to play? Input the number next to the card.\nYour hand : ${handCardsIndexed.mkString(" | ")}\nCurrent table : ${currentGame.table.cards.mkString(" | ")}\n-> ").trim.replaceAll(" ", "")
               numberTest = tryToGetNumber(userInput)
               rangeTest = tryIsThisInRange(userInput)
 
@@ -207,3 +212,6 @@ import scala.util.{Try, Success, Failure}
       println(s"\n\nAnd the winner is: ${winners.map(_.name).mkString}!")
 
 end run
+
+
+

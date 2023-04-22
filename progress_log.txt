@@ -25,3 +25,8 @@ so far in my testing everything works. However, with more than ~2 players the de
 I sent an email regarding the subject. Next stop is the saving and loading, round system, and the more cards / decks being added with player count. After that, it's on to the GUI.
 I feel very positive at the moment. However I do have some IRL stuff coming up, for instance moving houses on the 17th. I will try to keep up the productivity I've had today and
 the past days.
+
+22.4.2023
+Couple of days late. Whoops. The final stretch is truly among us. I just finished the saving/loading part which is a huge relief. That was one of the
+requirements still missing, so it feels good to get it done. Now I still have the human algorithm to clean up / remodel. I'm afraid the GUI is probably
+too late to start at the moment. If I get a boost / if I can finish the human algorithm in a reasonable time, then I will try my hand at the GUI. We will see what happens

@@ -4,6 +4,8 @@ class Card(val name: String, val valueInHand: Int, val valueInTable: Int):
 
   val firstTwo = name.take(2)
   val last = name.takeRight(1)
+  
+  val toOriginalForm = firstTwo + last
 
   var value = ""
   var suit = ""

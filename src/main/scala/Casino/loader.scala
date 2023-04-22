@@ -29,7 +29,7 @@ def loadGame(input: Reader) =
     var currentLine = lineReader.readLine().trim.toLowerCase
 
     if !(currentLine.startsWith("save")) then
-      throw new CorruptedFileException("\nReason : Unable to read save file")
+      throw new CorruptedFileException("\nReason : Unable to read save file, did not find 'save' keyword")
 
     currentLine = lineReader.readLine()
     while currentLine != null do
@@ -350,6 +350,12 @@ def loadGameFromFile() =
                 var handCardIndex = 0                                                                   // temporary placeholder
                 var userInput = readLine(s"What card do you want to play? Input the number next to the card.\nYour hand : ${handCardsIndexed.mkString(" | ")}\nCurrent table : ${currentGame.table.cards.mkString(" | ")}\n-> ").trim.replaceAll(" ", "")
 
+                while userInput == "/halt" do
+                  halt(players, turn, deck, origDeck, currentGame.table.cards)
+                  println(s"\nPlayer is now : ${currentPlayer.name}")
+                  userInput = readLine(s"What card do you want to play? Input the number next to the card.\nYour hand : ${handCardsIndexed.mkString(" | ")}\nCurrent table : ${currentGame.table.cards.mkString(" | ")}\n-> ").trim.replaceAll(" ", "")
+
+
                 def tryIsThisInRange(input: String) = Try {
                   currentPlayer.hand.cards(input.toInt)                                                 // helper function for exceptions
                 }
@@ -362,6 +368,10 @@ def loadGameFromFile() =
                     userInput = readLine(s"\nUnknown number : '$userInput'. Please input the integer next to the card you want to play.\nYour hand : ${handCardsIndexed.mkString(" | ")}\nCurrent table : ${currentGame.table.cards.mkString(" | ")}\n-> ").trim.replaceAll(" ", "")
                   else if rangeTest.isFailure then
                     userInput = readLine(s"\nGiven number '$userInput' is not in the acceptable range. Please input the integer next to the card you want to play.\nYour hand : ${handCardsIndexed.mkString(" | ")}\nCurrent table : ${currentGame.table.cards.mkString(" | ")}\n-> ").trim.replaceAll(" ", "")
+                  while userInput == "/halt" do
+                    halt(players, turn, deck, origDeck, currentGame.table.cards)
+                    println(s"\nPlayer is now : ${currentPlayer.name}")
+                    userInput = readLine(s"What card do you want to play? Input the number next to the card.\nYour hand : ${handCardsIndexed.mkString(" | ")}\nCurrent table : ${currentGame.table.cards.mkString(" | ")}\n-> ").trim.replaceAll(" ", "")
                   numberTest = tryToGetNumber(userInput)
                   rangeTest = tryIsThisInRange(userInput)
 

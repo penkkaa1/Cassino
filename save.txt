@@ -1,65 +1,61 @@
 save
 #game metadata
-Player2: Aaron
-player 2 : Mikko
-player3:Niko
+Player1: /aaaaaaaron
+Player2: \\\\niko
 
 
 #turn
-11
+1
 
-#Player1
-QnD
-KnS
+
+#player1
+03C
+03H
+03S
+06D
 #stack1
-JkC
-Acc
+02S
+02H
+02C
+06H
 #points1
-11
+0
+
 
 #player2
+03D
+06H
 06D
-JkC
-04C
-KnS
+06C
 #stack2
-10D
 #points2
-11
+0
 
-#player3
-05H
-#stack3
-AcS
-#points3
-11
 
 #table
-02H
-10D
+06C
+
 
 #deck
-JkH
-QnD
+06S
+02D
+06S
+
 
 #origDeck
-Jkh
-QnD
-QnH
-QnS
-QNC
-QNC
-QNC
-QnC
-QNC
-QNC
-QNC
-QNC
-QNC
-QNC
-QNC
-QnC
-QnC
-Qnc
-QnC
-QnC
+02H
+02D
+02C
+02S
+03H
+03D
+03S
+03C
+06C
+06D
+06S
+06H
+06C
+06D
+06S
+06H
