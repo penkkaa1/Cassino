@@ -38,7 +38,7 @@ class Game(val table: Table, val deck: Deck):
       else
         player.hand.removeCard(playedCard)
         table.addCardToTable(playedCard)                              // case if playedCard does not match anything, e.g. card is placed on the table
-        println(s"\nPlayer ${player.name} places $playedCard on the table!")
+        println(s"Player ${player.name} places $playedCard on the table!")
         break
   }
 

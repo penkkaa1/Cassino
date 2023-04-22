@@ -12,12 +12,15 @@ class CorruptedFileException(message: String) extends Exception(message)
 var players = Buffer[Player]()
 var turn = 0
 var deck = Deck(Buffer[Card]())
+var tableCards = Buffer[Card]()
+var origDeck = Deck(Buffer[Card]())
 
 
 def loadGame(input: Reader) =
   var atLeast2players = false
   var turnDecided = false
   var deckAdded = false
+  var origDeckAdded = false
 
   val lineReader = BufferedReader(input)
 
@@ -46,15 +49,21 @@ def loadGame(input: Reader) =
                                         for p <- playersAndNum do
                                            players += Player(p._1, Hand(Buffer[Card]()), Stack(Buffer[Card]()))
                                         if players.length >= 2 then atLeast2players = true else throw CorruptedFileException(s"\nReason : Did not find 2 players\nCurrent players : (${players.map(_.name).mkString(", ")}).")
-              case "#turn"          =>  val numOption = currentChunk.last.toIntOption
+              case "#turn"          =>  val numOption = currentChunk.last.toIntOption       // maybe an int, check if it is
                                         numOption match
-                                          case n: Some[Int] => turn = n.get
+                                          case n: Some[Int] => turn = n.get                 // if an int, get it
                                           case _            => throw CorruptedFileException(s"\nReason : Turn number invalid, '$numOption'")
-                                        if turn > players.length then throw CorruptedFileException("\nReason : Turn number higher than player amount")    // MAYBE NOT NEEDED?
+                                        if turn < 0 then throw CorruptedFileException(s"\nReason : Turn number cannot be negative : ${turn}")   // turn cannot be negative
                                         turnDecided = true
               case "#deck"          =>  val cards = getCards(currentChunk)
                                         deck = Deck(cards)
                                         deckAdded = true
+              case "#origdeck"      =>  val cards = getCards(currentChunk)
+                                        if cards.length < ((players.length * 4) + 4) then throw CorruptedFileException(s"\nReason : Not enough cards in original deck to start a new round!\nOriginal deck length : ${cards.length}\nAmount needed to start a new round : ${players.length * 4} + 4 for the table.")
+                                        origDeck = Deck(cards)
+                                        origDeckAdded = true
+              case "#table"          => val cards = getCards(currentChunk)
+                                        tableCards = cards
               case "#player1"       =>  var num = getPlayerNum(currentChunk.head, false)
                                         val cards = getCards(currentChunk)
                                         players(num - 1).hand = Hand(cards)
@@ -277,31 +286,161 @@ def loadGame(input: Reader) =
 
     // If something missing, throwing exception
     if !turnDecided then throw CorruptedFileException("\nReason : Turn undecided")
-    if !deckAdded then throw CorruptedFileException("\nReason : Deck not added")
+    if !deckAdded then throw CorruptedFileException("\nReason : Current deck not added")
+    if !origDeckAdded then throw CorruptedFileException("\nReason: Original deck not added")
 
-    //println(s"\nPlayers: ${players.mkString}")
-//    println(s"\nStacks: ")
-//    players.foreach( p => println((p.name, p.stack)))
-//    println(s"\nPoints: ")
-//    players.foreach( p => println((p.name, p.points)))
-//    println(s"\nTurn: $turn")
-//    println(s"\nDeck: ")
-//    deck.cards.mkString("\n")
+    val result = Vector(players.map(_.name), players.map(_.hand) , players.map(_.stack), players.map(_.points), turn, tableCards, deck, origDeck)
 
-    val result = Vector(players.map(_.name), players.map(_.hand) , players.map(_.stack), players.map(_.points), turn, deck)
-    println(result)
+def loadGameFromFile() =
 
-
-
-@main def testi() =
+  println("\nTrying to load game from save file...\n")
 
   val fileName = "save.txt"
   val fileIn = FileReader(fileName)
   val linesIn = BufferedReader(fileIn)
   try
-    loadGame(linesIn)
+    val result = loadGame(linesIn)
+    println("Game loaded successfully!\n")
+    var playTable = Table(tableCards, players)
+    var currentGame = Game(playTable, deck)
+    var playersPoints = players.map( p => (p, p.points) )
+    turn = if (turn - 1) < 0 then (players.length - 1) else ((turn - 1) % players.length)    // if turn is 0, previous player is the player at the last index, else its the previous player by index
+
+    def findMax(playerNum: Buffer[(Player, Int)]) =
+      var max = 0
+      for pair <- playerNum do
+        if pair._2 > max then                             // helper function for finding the maximum points
+          max = pair._2
+      playerNum.filter( p => p._2 == max ).map( pair => pair._1 )
+
+    def tryToGetNumber(input: String) = Try {
+      input.toInt                                         //helper function for exception handling
+    }
+
+    var previousPlayer = if turn == 0 then currentGame.table.players.last else currentGame.table.players( turn - 1)
+
+    println(s"The game continues! Current points: \n${playersPoints.map( p => (p._1.name, p._2)).mkString("\n")}\n")
+
+    def newRound() =
+      playersPoints = players.map( p => (p, p.points) )                   // update player points
+      deck = Deck(origDeck.cards.toBuffer)                                // reset deck to original
+      turn += 1                                                           // change starting player
+      tableCards = deck.selectRandomCards(4)                              // reset the table cards
+      playTable = Table(tableCards, players)                              // reset table
+      currentGame = Game(playTable, deck)                                 // reset the game
+      println(s"\nA new round begins! Current points: \n${playersPoints.map( p => (p._1.name, p._2)).mkString("\n")}\n")
+      for player <- players do
+        player.stack = Stack(Buffer[Card]())                              // reset players stack so that they dont get multiple points
+        player.hand = Hand(deck.selectRandomCards(4))                     // reset players hand
+
+    while !{currentGame.table.players.exists( _.points >= 16)} do {             // continue while no player has atleast 16 points
+      while currentGame.table.players.exists( p => p.hand.cards.nonEmpty ) do   // progress if atleast one player still has cards in their hand
+        breakable {
+            for i <- 0 until 1 do
+                val currentPlayer = currentGame.table.players(turn % currentGame.table.players.length)
+                if currentPlayer.hand.cards.isEmpty then
+                  turn += 1
+                  break                                          // if for some reason current player does not have any cards, it skips them
+                println(s"\nPlayer is now : ${currentPlayer.name}")
+
+                if currentGame.deck.cards.nonEmpty && previousPlayer.hand.cards.length < 4 then
+                  previousPlayer.hand.addCard(currentGame.deck.selectRandomCards(1).head)                 // as long as there are cards in the deck, add one to the previous players hand
+
+                val handCardsIndexed = currentPlayer.hand.cards.zipWithIndex
+                var handCardIndex = 0                                                                   // temporary placeholder
+                var userInput = readLine(s"What card do you want to play? Input the number next to the card.\nYour hand : ${handCardsIndexed.mkString(" | ")}\nCurrent table : ${currentGame.table.cards.mkString(" | ")}\n-> ").trim.replaceAll(" ", "")
+
+                def tryIsThisInRange(input: String) = Try {
+                  currentPlayer.hand.cards(input.toInt)                                                 // helper function for exceptions
+                }
+
+                var numberTest = tryToGetNumber(userInput)
+                var rangeTest = tryIsThisInRange(userInput)
+
+                while numberTest.isFailure || rangeTest.isFailure do
+                  if numberTest.isFailure then
+                    userInput = readLine(s"\nUnknown number : '$userInput'. Please input the integer next to the card you want to play.\nYour hand : ${handCardsIndexed.mkString(" | ")}\nCurrent table : ${currentGame.table.cards.mkString(" | ")}\n-> ").trim.replaceAll(" ", "")
+                  else if rangeTest.isFailure then
+                    userInput = readLine(s"\nGiven number '$userInput' is not in the acceptable range. Please input the integer next to the card you want to play.\nYour hand : ${handCardsIndexed.mkString(" | ")}\nCurrent table : ${currentGame.table.cards.mkString(" | ")}\n-> ").trim.replaceAll(" ", "")
+                  numberTest = tryToGetNumber(userInput)
+                  rangeTest = tryIsThisInRange(userInput)
+
+                handCardIndex = userInput.toInt
+
+                val handCard = handCardsIndexed.filter( pairs => pairs._2 == handCardIndex).map( pair => pair._1 ).head
+
+                println(s"\nYou selected : $handCard\n")
+
+                if currentGame.table.cards.isEmpty then
+                  currentPlayer.hand.removeCard(handCard)
+                  currentGame.table.addCardToTable(handCard)                                              // if table is empty, simply places the chosen card on the table
+                  println(s"Player ${currentPlayer.name} places $handCard on the table!")
+                else
+                  val tableCardsIndexed = currentGame.table.cards.zipWithIndex
+                  var tableCardsIndexes = Buffer[Int]()                                                 //placeholder
+
+                  var input = readLine(s"What card(s) do you want in return? Separate multiple indexes with a comma ','\nCurrent table : ${tableCardsIndexed.mkString(" | ")}\n-> ").trim.replace(" ", "").split(",")
+
+                  def tryToGetNumbers(input: Array[String]) = Try {
+                    input.map( _.toInt)
+                  }
+                                                                                                        // more helper functions for exceptions
+                  def tryIfTheseAreInRange(input: Array[String]) = Try {
+                    input.map( _.toInt).foreach( i => tableCardsIndexed.apply(i))
+                  }
+
+                  var numbersTest = tryToGetNumbers(input)
+                  var rangeTests = tryIfTheseAreInRange(input)
+
+                  while numbersTest.isFailure || rangeTests.isFailure do
+                    if numbersTest.isFailure then
+                      input = readLine(s"\nUnknown numbers : (${input.mkString(", ")}). Please only input the integers next to the cards you want to pick up.\nWhat card(s) do you want in return? Separate multiple card indexes with a comma ','\nCurrent table : ${tableCardsIndexed.mkString(" | ")}\n-> ").trim.replace(" ", "").split(",")
+                    else if rangeTests.isFailure then
+                      input = readLine(s"\nAtleast one of the given numbers was not in the acceptable range: (${input.mkString(", ")}).\nWhat card(s) do you want in return? Separate multiple indexes with a comma ','\nCurrent table : ${tableCardsIndexed.mkString(" | ")}\n-> ").trim.replace(" ", "").split(",")
+                    numbersTest = tryToGetNumbers(input)
+                    rangeTests = tryIfTheseAreInRange(input)
+                  tableCardsIndexes = input.map(_.toInt).toBuffer
+
+
+                  val tableCards = Buffer[Card]()
+                  tableCardsIndexes.foreach( index => tableCards += tableCardsIndexed.filter( _._2 == index).map( pair => pair._1).head )
+
+                  currentGame.humanAlgorithm(currentGame.table, currentPlayer, handCard, tableCards)
+
+                println("\n------------------------------------------------------------------------------------")
+                previousPlayer = currentPlayer
+                turn += 1
+          }
+
+      currentGame.lastPickUpPlayer.addMultipleCardsToStack(playTable.cards)                             // gives the last player to pick up cards the rest of the cards on the table
+      println(s"\nPlayer ${currentGame.lastPickUpPlayer.name} was the last player to pick up cards, and so recieved all the rest of the cards from the table!\n")
+
+      var playerAces = players.map( p => (p, p.stack.countAces() ) )                                  // finding which player has the most aces, who has the most cards, spades... etc
+      if !playerAces.forall( p => p._2 == 0) then findMax(playerAces).foreach( p => p.addPoints(1) )
+
+      var playerCards = players.map( p => (p, p.stack.countCards() ) )
+      if !playerCards.forall( p => p._2 == 0 ) then findMax(playerCards).foreach( p => p.addPoints(1) )
+
+      var playerSpades = players.map( p => (p, p.stack.countSpades() ) )
+      if !playerSpades.forall( p => p._2 == 0 ) then findMax(playerSpades).foreach( p => p.addPoints(2) )
+
+      players.foreach( p => if p.stack.hasCard(tenD) then p.addPoints(2) )           // checking for ten of diamonds, and for two of spades
+      players.foreach( p => if p.stack.hasCard(twoS) then p.addPoints(1) )
+
+      players.foreach( p => println(s"Player ${p.name} stack : ${p.stack.gatheredCards.mkString(", ")}\nPoints: ${p.points}\n") )   // currently for TESTING
+
+      if !{currentGame.table.players.exists( _.points >= 16)} then newRound()     // check for the 16 points, if no player has them start a new round
+
+    }
+    playersPoints = players.map( p => (p, p.points) )                   // update player points one final time
+
+    var winners = findMax(playersPoints)
+
+    if winners.length > 1 then
+      println(s"\n\nPlayers ${winners.map(_.name).mkString(" and ")} have points ${winners.map( p => p.points).mkString(", ")}\nITS A TIE!")
+    else
+      println(s"\n\nAnd the winner is: ${winners.map(_.name).mkString}!")
+
   finally
-    fileIn.close()
+    fileIn.close()        // close the streams
     linesIn.close()
-
-

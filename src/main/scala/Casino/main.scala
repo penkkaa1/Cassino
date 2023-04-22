@@ -19,8 +19,7 @@ import scala.util.{Try, Success, Failure}
 
   def isMatch(input: String): String =
     input.split(" ").headOption match
-      case Some("/load") => 
-                            "mogadishu"
+      case Some("/load")  => "mogadishu"
       case Some("/start") => "valid. continue"
       case _ => "invalid"
 
@@ -32,12 +31,15 @@ import scala.util.{Try, Success, Failure}
     commandTest = isFirstLetterSlash(startingInput)
     matchTest = isMatch(startingInput)
 
-  println("\n\ngot through, starting new game")
-  println(s"Matchtest: $matchTest")
+  if matchTest == "mogadishu" then
+    loadGameFromFile()
+    System.exit(0)
 
-  var originalDeck = allCards
+  println("\nStarting a new game!\n")
+
+  //var originalDeck = allCards
   //var originalDeck = Deck(Buffer(twoH,threeC,fourH,fiveD,sixD,sevenC,eightS,nineS,tenH,jackC,queenS,kingH,aceD, aceC, eightD, fourS, twoC))
-  //val originalDeck = Deck(Buffer(twoH, twoD, twoC, twoS, threeH, threeD, threeS, threeC, sixC, sixD, sixS, sixH, sixC, sixD, sixS, sixH))           //different Decks for testing purposes
+  val originalDeck = Deck(Buffer(twoH, twoD, twoC, twoS, threeH, threeD, threeS, threeC, sixC, sixD, sixS, sixH, sixC, sixD, sixS, sixH))           //different Decks for testing purposes
   var deck = Deck(originalDeck.cards.toBuffer)
 
   var playerCountInput = readLine("Please input how many players do you want? (At least 2)\n-> ")
@@ -84,121 +86,124 @@ import scala.util.{Try, Success, Failure}
   var turn = -1
   var previousPlayer = currentGame.table.players.head
 
-  while !{currentGame.table.players.exists( _.points >= 16)} do {       // a new round if no player has 16 points
-    playersPoints = players.map( p => (p, p.points) )                   // update player points
-    deck = Deck(originalDeck.cards.toBuffer)                            // reset deck
-    turn += 1                                                           // change starting player
-    playTableCards = deck.selectRandomCards(4)                          // reset the table cards
-    playTable = Table(playTableCards, players)                          // reset table
-    currentGame = Game(playTable, deck)                                 // reset the game
-    println(s"\nA new round begins! Current points: \n${playersPoints.map( p => (p._1.name, p._2)).mkString("\n")}\n")
-    for player <- players do
-      player.stack = Stack(Buffer[Card]())                              // reset players stack so that they dont get multiple points
-      player.hand = Hand(deck.selectRandomCards(4))                     // reset players hand
 
-    while currentGame.table.players.exists( p => p.hand.cards.nonEmpty ) do   // start a new round
-      breakable {
-        for i <- 0 until 1 do
+    while !{currentGame.table.players.exists( _.points >= 16)} do {       // a new round if no player has 16 points
+      playersPoints = players.map( p => (p, p.points) )                   // update player points
+      deck = Deck(originalDeck.cards.toBuffer)                            // reset deck
+      turn += 1                                                           // change starting player
+      playTableCards = deck.selectRandomCards(4)                          // reset the table cards
+      playTable = Table(playTableCards, players)                          // reset table
+      currentGame = Game(playTable, deck)                                 // reset the game
+      println(s"\nA new round begins! Current points: \n${playersPoints.map( p => (p._1.name, p._2)).mkString("\n")}\n")
+      for player <- players do
+        player.stack = Stack(Buffer[Card]())                              // reset players stack so that they dont get multiple points
+        player.hand = Hand(deck.selectRandomCards(4))                     // reset players hand
 
-          val currentPlayer = currentGame.table.players(turn % currentGame.table.players.length)
-          if currentPlayer.hand.cards.isEmpty then break                                          // if for some reason current player does not have any cards, it skips them
-          println(s"\nPlayer is now : ${currentPlayer.name}")
+      while currentGame.table.players.exists( p => p.hand.cards.nonEmpty ) do   // start a new round
+        breakable {
+          for i <- 0 until 1 do
 
-          if currentGame.deck.cards.nonEmpty && previousPlayer.hand.cards.length < 4 then
-            previousPlayer.hand.addCard(currentGame.deck.selectRandomCards(1).head)                 // as long as there are cards in the deck, add one to the previous players hand
+            val currentPlayer = currentGame.table.players(turn % currentGame.table.players.length)
+            if currentPlayer.hand.cards.isEmpty then
+              turn += 1                                     // if for some reason current player does not have any cards, it skips them
+              break
+            println(s"\nPlayer is now : ${currentPlayer.name}")
 
-          val handCardsIndexed = currentPlayer.hand.cards.zipWithIndex
-          var handCardIndex = 0                                                                   // temporary placeholder
-          var userInput = readLine(s"What card do you want to play? Input the number next to the card.\nYour hand : ${handCardsIndexed.mkString(" | ")}\nCurrent table : ${currentGame.table.cards.mkString(" | ")}\n-> ").trim.replaceAll(" ", "")
+            if currentGame.deck.cards.nonEmpty && previousPlayer.hand.cards.length < 4 then
+              previousPlayer.hand.addCard(currentGame.deck.selectRandomCards(1).head)                 // as long as there are cards in the deck, add one to the previous players hand
 
-          def tryIsThisInRange(input: String) = Try {
-            currentPlayer.hand.cards(input.toInt)                                                 // helper function for exceptions
-          }
+            val handCardsIndexed = currentPlayer.hand.cards.zipWithIndex
+            var handCardIndex = 0                                                                   // temporary placeholder
+            var userInput = readLine(s"What card do you want to play? Input the number next to the card.\nYour hand : ${handCardsIndexed.mkString(" | ")}\nCurrent table : ${currentGame.table.cards.mkString(" | ")}\n-> ").trim.replaceAll(" ", "")
 
-          var numberTest = tryToGetNumber(userInput)
-          var rangeTest = tryIsThisInRange(userInput)
-
-          while numberTest.isFailure || rangeTest.isFailure do
-            if numberTest.isFailure then
-              userInput = readLine(s"\nUnknown number : '$userInput'. Please input the integer next to the card you want to play.\nYour hand : ${handCardsIndexed.mkString(" | ")}\nCurrent table : ${currentGame.table.cards.mkString(" | ")}\n-> ").trim.replaceAll(" ", "")
-            else if rangeTest.isFailure then
-              userInput = readLine(s"\nGiven number '$userInput' is not in the acceptable range. Please input the integer next to the card you want to play.\nYour hand : ${handCardsIndexed.mkString(" | ")}\nCurrent table : ${currentGame.table.cards.mkString(" | ")}\n-> ").trim.replaceAll(" ", "")
-            numberTest = tryToGetNumber(userInput)
-            rangeTest = tryIsThisInRange(userInput)
-
-          handCardIndex = userInput.toInt
-
-          val handCard = handCardsIndexed.filter( pairs => pairs._2 == handCardIndex).map( pair => pair._1 ).head
-
-          println(s"\nYou selected : $handCard\n")
-
-          if currentGame.table.cards.isEmpty then
-            currentPlayer.hand.removeCard(handCard)
-            currentGame.table.addCardToTable(handCard)                                              // if table is empty, simply places the chosen card on the table
-            println(s"\nPlayer ${currentPlayer.name} places $handCard on the table!")
-          else
-            val tableCardsIndexed = currentGame.table.cards.zipWithIndex
-            var tableCardsIndexes = Buffer[Int]()                                                 //placeholder
-
-            var input = readLine(s"\nWhat card(s) do you want in return? Separate multiple indexes with a comma ','\nCurrent table : ${tableCardsIndexed.mkString(" | ")}\n-> ").trim.replace(" ", "").split(",")
-
-            def tryToGetNumbers(input: Array[String]) = Try {
-              input.map( _.toInt)
-            }
-                                                                                                  // more helper functions for exceptions
-            def tryIfTheseAreInRange(input: Array[String]) = Try {
-              input.map( _.toInt).foreach( i => tableCardsIndexed.apply(i))
+            def tryIsThisInRange(input: String) = Try {
+              currentPlayer.hand.cards(input.toInt)                                                 // helper function for exceptions
             }
 
-            var numbersTest = tryToGetNumbers(input)
-            var rangeTests = tryIfTheseAreInRange(input)
+            var numberTest = tryToGetNumber(userInput)
+            var rangeTest = tryIsThisInRange(userInput)
 
-            while numbersTest.isFailure || rangeTests.isFailure do
-              if numbersTest.isFailure then
-                input = readLine(s"\nUnknown numbers : (${input.mkString(", ")}). Please only input the integers next to the cards you want to pick up.\nWhat card(s) do you want in return? Separate multiple card indexes with a comma ','\nCurrent table : ${tableCardsIndexed.mkString(" | ")}\n-> ").trim.replace(" ", "").split(",")
-              else if rangeTests.isFailure then
-                input = readLine(s"\nAtleast one of the given numbers was not in the acceptable range: (${input.mkString(", ")}).\nWhat card(s) do you want in return? Separate multiple indexes with a comma ','\nCurrent table : ${tableCardsIndexed.mkString(" | ")}\n-> ").trim.replace(" ", "").split(",")
-              numbersTest = tryToGetNumbers(input)
-              rangeTests = tryIfTheseAreInRange(input)
-            tableCardsIndexes = input.map(_.toInt).toBuffer
+            while numberTest.isFailure || rangeTest.isFailure do
+              if numberTest.isFailure then
+                userInput = readLine(s"\nUnknown number : '$userInput'. Please input the integer next to the card you want to play.\nYour hand : ${handCardsIndexed.mkString(" | ")}\nCurrent table : ${currentGame.table.cards.mkString(" | ")}\n-> ").trim.replaceAll(" ", "")
+              else if rangeTest.isFailure then
+                userInput = readLine(s"\nGiven number '$userInput' is not in the acceptable range. Please input the integer next to the card you want to play.\nYour hand : ${handCardsIndexed.mkString(" | ")}\nCurrent table : ${currentGame.table.cards.mkString(" | ")}\n-> ").trim.replaceAll(" ", "")
+              numberTest = tryToGetNumber(userInput)
+              rangeTest = tryIsThisInRange(userInput)
 
-            //STILL GOT TO IMPLEMENT PICKING UP MULTIPLE PAIRS OF CARDS
+            handCardIndex = userInput.toInt
 
-            val tableCards = Buffer[Card]()
-            tableCardsIndexes.foreach( index => tableCards += tableCardsIndexed.filter( _._2 == index).map( pair => pair._1).head )
+            val handCard = handCardsIndexed.filter( pairs => pairs._2 == handCardIndex).map( pair => pair._1 ).head
 
-            currentGame.humanAlgorithm(currentGame.table, currentPlayer, handCard, tableCards)
+            println(s"\nYou selected : $handCard\n")
 
+            if currentGame.table.cards.isEmpty then
+              currentPlayer.hand.removeCard(handCard)
+              currentGame.table.addCardToTable(handCard)                                              // if table is empty, simply places the chosen card on the table
+              println(s"Player ${currentPlayer.name} places $handCard on the table!")
+            else
+              val tableCardsIndexed = currentGame.table.cards.zipWithIndex
+              var tableCardsIndexes = Buffer[Int]()                                                 //placeholder
 
-          previousPlayer = currentPlayer
-          turn += 1
-      }
-    currentGame.lastPickUpPlayer.addMultipleCardsToStack(playTable.cards)                             // gives the last player to pick up cards the rest of the cards on the table
-    println(s"\nPlayer ${currentGame.lastPickUpPlayer.name} was the last player to pick up cards, and so recieved all the rest of the cards from the table!\n")
+              var input = readLine(s"What card(s) do you want in return? Separate multiple indexes with a comma ','\nCurrent table : ${tableCardsIndexed.mkString(" | ")}\n-> ").trim.replace(" ", "").split(",")
 
-    var playerAces = players.map( p => (p, p.stack.countAces() ) )                                  // finding which player has the most aces, who has the most cards, spades... etc
-    if !playerAces.forall( p => p._2 == 0) then findMax(playerAces).foreach( p => p.addPoints(1) )
+              def tryToGetNumbers(input: Array[String]) = Try {
+                input.map( _.toInt)
+              }
+                                                                                                    // more helper functions for exceptions
+              def tryIfTheseAreInRange(input: Array[String]) = Try {
+                input.map( _.toInt).foreach( i => tableCardsIndexed.apply(i))
+              }
 
-    var playerCards = players.map( p => (p, p.stack.countCards() ) )
-    if !playerCards.forall( p => p._2 == 0 ) then findMax(playerCards).foreach( p => p.addPoints(1) )
+              var numbersTest = tryToGetNumbers(input)
+              var rangeTests = tryIfTheseAreInRange(input)
 
-    var playerSpades = players.map( p => (p, p.stack.countSpades() ) )
-    if !playerSpades.forall( p => p._2 == 0 ) then findMax(playerSpades).foreach( p => p.addPoints(2) )
+              while numbersTest.isFailure || rangeTests.isFailure do
+                if numbersTest.isFailure then
+                  input = readLine(s"\nUnknown numbers : (${input.mkString(", ")}). Please only input the integers next to the cards you want to pick up.\nWhat card(s) do you want in return? Separate multiple card indexes with a comma ','\nCurrent table : ${tableCardsIndexed.mkString(" | ")}\n-> ").trim.replace(" ", "").split(",")
+                else if rangeTests.isFailure then
+                  input = readLine(s"\nAtleast one of the given numbers was not in the acceptable range: (${input.mkString(", ")}).\nWhat card(s) do you want in return? Separate multiple indexes with a comma ','\nCurrent table : ${tableCardsIndexed.mkString(" | ")}\n-> ").trim.replace(" ", "").split(",")
+                numbersTest = tryToGetNumbers(input)
+                rangeTests = tryIfTheseAreInRange(input)
+              tableCardsIndexes = input.map(_.toInt).toBuffer
 
-    players.foreach( p => if p.stack.hasCard(tenD) then p.addPoints(2) )           // checking for ten of diamonds, and for two of spades
-    players.foreach( p => if p.stack.hasCard(twoS) then p.addPoints(1) )
+              //STILL GOT TO IMPLEMENT PICKING UP MULTIPLE PAIRS OF CARDS
 
-    players.foreach( p => println(s"\nPlayer ${p.name} stack : ${p.stack.gatheredCards.mkString(", ")}\nPoints: ${p.points}") )   // currently for TESTING
+              val tableCards = Buffer[Card]()
+              tableCardsIndexes.foreach( index => tableCards += tableCardsIndexed.filter( _._2 == index).map( pair => pair._1).head )
 
-  }
+              currentGame.humanAlgorithm(currentGame.table, currentPlayer, handCard, tableCards)
 
-  playersPoints = players.map( p => (p, p.points) )                   // update player points one final time
+            println("\n------------------------------------------------------------------------------------")
+            previousPlayer = currentPlayer
+            turn += 1
+        }
+      currentGame.lastPickUpPlayer.addMultipleCardsToStack(playTable.cards)                             // gives the last player to pick up cards the rest of the cards on the table
+      println(s"\nPlayer ${currentGame.lastPickUpPlayer.name} was the last player to pick up cards, and so recieved all the rest of the cards from the table!\n")
 
-  var winners = findMax(playersPoints)
+      var playerAces = players.map( p => (p, p.stack.countAces() ) )                                  // finding which player has the most aces, who has the most cards, spades... etc
+      if !playerAces.forall( p => p._2 == 0) then findMax(playerAces).foreach( p => p.addPoints(1) )
 
-  if winners.length > 1 then
-    println(s"\n\nPlayers ${winners.map(_.name).mkString(" and ")} have points ${winners.map( p => p.points).mkString(", ")}\nITS A TIE!")
-  else
-    println(s"\n\nAnd the winner is: ${winners.map(_.name).mkString}!")
+      var playerCards = players.map( p => (p, p.stack.countCards() ) )
+      if !playerCards.forall( p => p._2 == 0 ) then findMax(playerCards).foreach( p => p.addPoints(1) )
+
+      var playerSpades = players.map( p => (p, p.stack.countSpades() ) )
+      if !playerSpades.forall( p => p._2 == 0 ) then findMax(playerSpades).foreach( p => p.addPoints(2) )
+
+      players.foreach( p => if p.stack.hasCard(tenD) then p.addPoints(2) )           // checking for ten of diamonds, and for two of spades
+      players.foreach( p => if p.stack.hasCard(twoS) then p.addPoints(1) )
+
+      players.foreach( p => println(s"Player ${p.name} stack : ${p.stack.gatheredCards.mkString(", ")}\nPoints: ${p.points}\n") )   // currently for TESTING
+
+    }
+
+    playersPoints = players.map( p => (p, p.points) )                   // update player points one final time
+
+    var winners = findMax(playersPoints)
+
+    if winners.length > 1 then
+      println(s"\n\nPlayers ${winners.map(_.name).mkString(" and ")} have points ${winners.map( p => p.points).mkString(", ")}\nITS A TIE!")
+    else
+      println(s"\n\nAnd the winner is: ${winners.map(_.name).mkString}!")
 
 end run

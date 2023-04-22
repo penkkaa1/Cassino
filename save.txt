@@ -1,11 +1,12 @@
 save
 #game metadata
 Player2: Aaron
-player 2 : Jaakko
+player 2 : Mikko
+player3:Niko
 
 
 #turn
-2
+11
 
 #Player1
 QnD
@@ -14,7 +15,7 @@ KnS
 JkC
 Acc
 #points1
-699
+11
 
 #player2
 06D
@@ -24,12 +25,41 @@ KnS
 #stack2
 10D
 #points2
-9
+11
 
+#player3
+05H
+#stack3
+AcS
+#points3
+11
 
-
-
+#table
+02H
+10D
 
 #deck
 JkH
 QnD
+
+#origDeck
+Jkh
+QnD
+QnH
+QnS
+QNC
+QNC
+QNC
+QnC
+QNC
+QNC
+QNC
+QNC
+QNC
+QNC
+QNC
+QnC
+QnC
+Qnc
+QnC
+QnC
