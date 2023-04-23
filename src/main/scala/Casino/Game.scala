@@ -1,50 +1,67 @@
 package Casino
 import scala.io.StdIn.*
 import scala.collection.mutable.Buffer
+import scala.collection.mutable.ListBuffer
 import scala.util.control.Breaks._
 
 
 class Game(val table: Table, val deck: Deck):
 
   var lastPickUpPlayer = table.players.head
-  
-  def humanAlgorithm(table: Table, player: Player, playedCard: Card, tableCards: Buffer[Card]) =
-  breakable {
-    for tableCard <- tableCards do
-      if playedCard.valueInHand == tableCards.foldLeft(0)( (card1, card2) => card1 + card2.valueInTable) then
-        table.removeCardsFromTable(tableCards)
-        player.addMultipleCardsToStack(tableCards)
-        player.addSingleCardToStack(playedCard)                       // case if multiple cards are chosen to be picked up from the table
-        player.hand.removeCard(playedCard)
-        if table.cards.isEmpty then                                   // checking if last pickup was a sweep
+
+  def humanAlgorithm(table: Table, player: Player, tableCards: Buffer[Card], playedCard: Card) : Unit =
+
+    var result = Buffer[Buffer[Card]]()                                       // tracking the matched combinations
+    var toDelete = Buffer[Card]()                                             // cards to be removed
+
+                                                     // if table is empty handled in 'main.scala'
+
+    for i <- tableCards do
+      if i.valueInTable == playedCard.valueInHand then                        // add table cards with the same value as the played one to be removed
+        toDelete += i
+
+    for i <- toDelete do
+      player.addSingleCardToStack(i)
+      table.removeSingleCard(i)                                               // deleting table cards with same value
+      result += ListBuffer(i)
+      tableCards -= i
+
+    for time <- 2 to tableCards.length do                                     // do this for combinations of 2, 3, ... tableCards.length
+      var combinations = tableCards.combinations(time)
+      for comb <- combinations do
+        if comb.map( _.valueInTable).sum == playedCard.valueInHand then
+          result += comb
+          table.removeCardsFromTable(comb.toBuffer)                           // remove found combinations cards from table
+          for c <- comb do
+            tableCards -= c                                                   // remove found combiantions cards from future combination checks
+          player.addMultipleCardsToStack(comb.toBuffer)
+
+    if result.isEmpty then
+      println(s"\nPlayer ${player.name} places $playedCard on the table!")
+      player.hand.removeCard(playedCard)                                      // case if no combination matches were found
+      table.addCardToTable(playedCard)
+    else
+      if result.length > 1 then                                               // case if multiple matches were found, also accounting for sweeps
+        if table.cards.isEmpty then
+          println(s"\nPlayer ${player.name} played the ${playedCard}, and received cards: ${result.flatten.mkString(", ")}!\nThey also got an extra point for sweeping the table!")
           player.addPoints(1)
-          println(s"\nPlayer ${player.name} played $playedCard, and recieved cards: ${tableCards.mkString(" and ")}.\nThey also got an extra point for sweeping the table!")
         else
-          println(s"\nPlayer ${player.name} played $playedCard, and recieved cards: ${tableCards.mkString(" and ")}!")
-        lastPickUpPlayer = player
-        break
-      else if playedCard.valueInHand == tableCard.valueInTable then
-        table.removeSingleCard(tableCard)
-        player.addSingleCardToStack(tableCard)
-        player.addSingleCardToStack(playedCard)                       // case if single card is chosen to be picked up from the table
-        player.hand.removeCard(playedCard)
-        if table.cards.isEmpty then                                   // checking if last pickup was a sweep
-          player.addPoints(1)
-          println(s"\nPlayer ${player.name} played $playedCard, recieved ${tableCard}, and got an extra point for sweeping the table!")
-        else
-          println(s"\nPlayer ${player.name} played $playedCard, and recieved ${tableCard}!")
-        lastPickUpPlayer = player
-        break
+          println(s"\nPlayer ${player.name} played the ${playedCard}, and received cards: ${result.flatten.mkString(", ")}!")
       else
-        player.hand.removeCard(playedCard)
-        table.addCardToTable(playedCard)                              // case if playedCard does not match anything, e.g. card is placed on the table
-        println(s"Player ${player.name} places $playedCard on the table!")
-        break
-  }
+        if table.cards.isEmpty then                                           // case if a single match was found, accounting for sweeps
+          println(s"\nPlayer ${player.name} played the ${playedCard}, and received the ${result.flatten.mkString("")}!\nThey also got an extra point for sweeping the table!")
+          player.addPoints(1)
+        else
+          println(s"\nPlayer ${player.name} played the ${playedCard}, and received the ${result.flatten.mkString("")}!")
+
+      player.addSingleCardToStack(playedCard)
+      player.hand.removeCard(playedCard)              // removing the played card from the hand and adding it to the stack
+      lastPickUpPlayer = player                       // updating last player to pick up cards
 
 
   override def toString() = table.toString()
 
 end Game
+
 
 

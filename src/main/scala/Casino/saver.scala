@@ -12,7 +12,7 @@ def writeToFile(fileName: String, arr: Seq[String]) =
       val writeLine = BufferedWriter(writeFile)
       try
         for i <- arr.indices do
-          writeLine.write(arr(i))
+          writeLine.write(arr(i))                                 // preparing writing to save file
           writeLine.newLine()
       finally
         writeLine.close()
@@ -24,12 +24,12 @@ def writeToFile(fileName: String, arr: Seq[String]) =
 def lineBeforeHashtag(input: Seq[String]): Seq[String] =
   var resList = Seq[String]()
   for w <- input do
-    if w.startsWith("#") && (!w.contains("game") && !w.contains("stack") && !w.contains("points")) then
+    if w.startsWith("#") && (!w.contains("game") && !w.contains("stack") && !w.contains("points")) then     // mainly for style purposes, if word starts with '#', add a empty space
       resList = resList :+ "\n"
     resList = resList :+ w
   resList
 
-def halt(players: Buffer[Player], turn: Int, deck: Deck, originalDeck: Deck, tableCards: Buffer[Card]) =
+def halt(players: Buffer[Player], turn: Int, deck: Deck, originalDeck: Deck, tableCards: Buffer[Card]) =    // when the player inputs '/halt'
     var input = readLine(s"\nGame halted.\nSave current game with '/save'\nContinue current game with '/continue'\nQuit current game with '/quit'\n-> ")
 
     def inputMatch(input: String) =
@@ -41,23 +41,23 @@ def halt(players: Buffer[Player], turn: Int, deck: Deck, originalDeck: Deck, tab
 
     var inputTest = inputMatch(input)
 
-    while inputTest == "invalid" do
+    while inputTest == "invalid" do                         // exception handling
       input = readLine(s"\nUnknown command '$input'\nSave current game with '/save'\nContinue current game with '/continue'\nQuit current game with '/quit'\n-> ")
       inputTest = inputMatch(input)
 
     if inputTest == "quit" then
-      println("\nGoodbye and thanks for playing!\n")
+      println("\nGoodbye and thanks for playing!\n")        // quits the game
       System.exit(0)
 
     if inputTest == "save" then
-      saveToFile(players, turn, deck, originalDeck, tableCards)
+      saveToFile(players, turn, deck, originalDeck, tableCards)     // saves current game, starts writing to file
 
-    println(s"\nContinuing game!\n")
+    println(s"\nContinuing game!\n")                                // if input is '/continue'
 
 
 def saveToFile(players: Buffer[Player], turn: Int, deck: Deck, originalDeck: Deck, tableCards: Buffer[Card]) =
 
-  var counter = 1
+  var counter = 1                                                           // counter for the player numbers
 
   var result = Seq[String]()
   var curPlayers = players
@@ -99,7 +99,7 @@ def saveToFile(players: Buffer[Player], turn: Int, deck: Deck, originalDeck: Dec
   for c <- originalDeck.cards do                                            // adding original deck cards
     result = result :+ c.toOriginalForm
 
-  result = lineBeforeHashtag(result)
+  result = lineBeforeHashtag(result)                                        // add empty space before hashtags, prepend with "save", write to the save file
   result = "save" +: result
   writeToFile("save.txt", result)
   println("\nSaving the game was successful!\n")

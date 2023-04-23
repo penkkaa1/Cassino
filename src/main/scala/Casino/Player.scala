@@ -10,7 +10,6 @@ class Player(val name: String, var hand: Hand, var stack: Stack):
       println(s"You do not have card '$card'")
     else
       this.hand.removeCard(card)
-      //println(s"Card '$card' removed!")
       
   def addSingleCardToStack(card: Card) =
     this.stack.gatheredCards += card

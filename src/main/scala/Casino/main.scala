@@ -4,13 +4,14 @@ import scala.io.StdIn.*
 import scala.collection.mutable.Buffer
 import scala.util.control.Breaks._
 import scala.util.{Try, Success, Failure}
+import scala.collection.mutable.ListBuffer
 
 
 
 
 @main def run() =
-  // MULTIPLE PAIRS
-  // GUI
+
+
 
   var startingInput = readLine(s"\nHello, welcome to Cassino. \nStart a new game by entering '/start'\nLoad a previous game by entering '/load'\n-> ")
 
@@ -22,7 +23,7 @@ import scala.util.{Try, Success, Failure}
 
   var matchTest = isMatch(startingInput)
 
-  while matchTest == "invalid" do //commandTest.isFailure ||
+  while matchTest == "invalid" do
     startingInput = readLine(s"\nUnknown command '$startingInput'\nStart a new game by entering '/start'\nLoad a previous game by entering '/load'\n-> ")
     matchTest = isMatch(startingInput)
 
@@ -30,7 +31,7 @@ import scala.util.{Try, Success, Failure}
     loadGameFromFile()
     System.exit(0)
 
-  println("\nStarting a new game!\n")
+  println("\nStarting a new game!\n")                                   // everything below here is for starting a new game, for loaded games check 'loader.scala'
 
   //var originalDeck = allCards
   //var originalDeck = Deck(Buffer(twoH,threeC,fourH,fiveD,sixD,sevenC,eightS,nineS,tenH,jackC,queenS,kingH,aceD, aceC, eightD, fourS, twoC))
@@ -75,13 +76,16 @@ import scala.util.{Try, Success, Failure}
 
   var playTableCards = Buffer[Card]()
   var playTable = Table(playTableCards, players)
-  var currentGame = Game(playTable, deck)
+  var currentGame = Game(playTable, deck)                                                                     // creating actual game etc.
   var playersPoints = players.map( p => (p, p.points) )
 
   var turn = -1
   var previousPlayer = currentGame.table.players.head
 
-  println("\nNOTE : You can pause and save the game at anytime with '/halt'")
+  println("\n------------------------------------------------------------------------------------")
+  println("NOTE : You can pause and save the game at anytime with '/halt'")
+  println("------------------------------------------------------------------------------------")
+
 
     while !{currentGame.table.players.exists( _.points >= 16)} do {       // a new round if no player has 16 points
       playersPoints = players.map( p => (p, p.points) )                   // update player points
@@ -90,23 +94,23 @@ import scala.util.{Try, Success, Failure}
       playTableCards = deck.selectRandomCards(4)                          // reset the table cards
       playTable = Table(playTableCards, players)                          // reset table
       currentGame = Game(playTable, deck)                                 // reset the game
-      println(s"\nA new round begins! Current points: \n${playersPoints.map( p => (p._1.name, p._2)).mkString("\n")}\n")
+      println(s"\nA new round begins! Current points: \n${playersPoints.map( p => (p._1.name, p._2)).mkString("\n")}")
       for player <- players do
         player.stack = Stack(Buffer[Card]())                              // reset players stack so that they dont get multiple points
         player.hand = Hand(deck.selectRandomCards(4))                     // reset players hand
 
-      while currentGame.table.players.exists( p => p.hand.cards.nonEmpty ) do   // start a new round
+      while currentGame.table.players.exists( p => p.hand.cards.nonEmpty ) do   // do until cards run out
         breakable {
           for i <- 0 until 1 do
 
             val currentPlayer = currentGame.table.players(turn % currentGame.table.players.length)
             if currentPlayer.hand.cards.isEmpty then
-              turn += 1                                     // if for some reason current player does not have any cards, it skips them
+              turn += 1                                     // if for some reason current player does not have any cards, it skips them. mainly used for loaded games.
               break
             println(s"\nPlayer is now : ${currentPlayer.name}")
 
             if currentGame.deck.cards.nonEmpty && previousPlayer.hand.cards.length < 4 then
-              previousPlayer.hand.addCard(currentGame.deck.selectRandomCards(1).head)                 // as long as there are cards in the deck, add one to the previous players hand
+              previousPlayer.hand.addCard(currentGame.deck.selectRandomCards(1).head)               // as long as there are cards in the deck, add one to the previous player's hand
 
             val handCardsIndexed = currentPlayer.hand.cards.zipWithIndex
             var handCardIndex = 0                                                                   // temporary placeholder
@@ -124,7 +128,7 @@ import scala.util.{Try, Success, Failure}
             var numberTest = tryToGetNumber(userInput)
             var rangeTest = tryIsThisInRange(userInput)
 
-            while numberTest.isFailure || rangeTest.isFailure do
+            while numberTest.isFailure || rangeTest.isFailure do                                    // exception handling. cases when input is not a number, or number is not in accetable range
               if numberTest.isFailure then
                 userInput = readLine(s"\nUnknown number : '$userInput'. Please input the integer next to the card you want to play.\nYour hand : ${handCardsIndexed.mkString(" | ")}\nCurrent table : ${currentGame.table.cards.mkString(" | ")}\n-> ").trim.replaceAll(" ", "")
               else if rangeTest.isFailure then
@@ -148,14 +152,14 @@ import scala.util.{Try, Success, Failure}
               println(s"Player ${currentPlayer.name} places $handCard on the table!")
             else
               val tableCardsIndexed = currentGame.table.cards.zipWithIndex
-              var tableCardsIndexes = Buffer[Int]()                                                 //placeholder
+              var tableCardsIndexes = Buffer[Int]()                                                   // placeholder
 
               var input = readLine(s"What card(s) do you want in return? Separate multiple indexes with a comma ','\nCurrent table : ${tableCardsIndexed.mkString(" | ")}\n-> ").trim.replace(" ", "").split(",")
 
               def tryToGetNumbers(input: Array[String]) = Try {
                 input.map( _.toInt)
               }
-                                                                                                    // more helper functions for exceptions
+                                                                                                      // more helper functions for exceptions
               def tryIfTheseAreInRange(input: Array[String]) = Try {
                 input.map( _.toInt).foreach( i => tableCardsIndexed.apply(i))
               }
@@ -163,7 +167,7 @@ import scala.util.{Try, Success, Failure}
               var numbersTest = tryToGetNumbers(input)
               var rangeTests = tryIfTheseAreInRange(input)
 
-              while numbersTest.isFailure || rangeTests.isFailure do
+              while numbersTest.isFailure || rangeTests.isFailure do                                   // exception handling. cases where input is not a number, and when atleast one number is not in acceptable range
                 if numbersTest.isFailure then
                   input = readLine(s"\nUnknown numbers : (${input.mkString(", ")}). Please only input the integers next to the cards you want to pick up.\nWhat card(s) do you want in return? Separate multiple card indexes with a comma ','\nCurrent table : ${tableCardsIndexed.mkString(" | ")}\n-> ").trim.replace(" ", "").split(",")
                 else if rangeTests.isFailure then
@@ -172,15 +176,15 @@ import scala.util.{Try, Success, Failure}
                 rangeTests = tryIfTheseAreInRange(input)
               tableCardsIndexes = input.map(_.toInt).toBuffer
 
-              //STILL GOT TO IMPLEMENT PICKING UP MULTIPLE PAIRS OF CARDS
 
               val tableCards = Buffer[Card]()
-              tableCardsIndexes.foreach( index => tableCards += tableCardsIndexed.filter( _._2 == index).map( pair => pair._1).head )
+              tableCardsIndexes.foreach( index => tableCards += tableCardsIndexed.filter( _._2 == index).map( pair => pair._1).head )     // add chosen cards to tableCards for the humanAlgorithm
 
-              currentGame.humanAlgorithm(currentGame.table, currentPlayer, handCard, tableCards)
+              currentGame.humanAlgorithm(currentGame.table, currentPlayer, tableCards, handCard)        
+
 
             println("\n------------------------------------------------------------------------------------")
-            previousPlayer = currentPlayer
+            previousPlayer = currentPlayer                                                    // update previous player for picking up new cards
             turn += 1
         }
       currentGame.lastPickUpPlayer.addMultipleCardsToStack(playTable.cards)                             // gives the last player to pick up cards the rest of the cards on the table
@@ -198,7 +202,7 @@ import scala.util.{Try, Success, Failure}
       players.foreach( p => if p.stack.hasCard(tenD) then p.addPoints(2) )           // checking for ten of diamonds, and for two of spades
       players.foreach( p => if p.stack.hasCard(twoS) then p.addPoints(1) )
 
-      players.foreach( p => println(s"Player ${p.name} stack : ${p.stack.gatheredCards.mkString(", ")}\nPoints: ${p.points}\n") )   // currently for TESTING
+      players.foreach( p => println(s"Player ${p.name} stack : ${p.stack.gatheredCards.mkString(", ")}\nPoints: ${p.points}\n") )   // currently for testing, might keep it in anyway
 
     }
 

@@ -1,7 +1,7 @@
 save
 #game metadata
-Player1: /aaaaaaaron
-Player2: \\\\niko
+Player1: Aaron
+Player2: Niko
 
 
 #turn
@@ -31,6 +31,7 @@ Player2: \\\\niko
 #points2
 0
 
+#player3
 
 #table
 06C

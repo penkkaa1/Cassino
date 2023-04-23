@@ -5,13 +5,15 @@ import scala.collection.mutable.Buffer
 import scala.util.control.Breaks.*
 import scala.util.{Failure, Success, Try}
 import java.io.{BufferedReader, FileReader, IOException, Reader, FileNotFoundException, FileWriter}
+import scala.collection.mutable.ListBuffer
+
 
 class CorruptedFileException(message: String) extends Exception(message)
 
 
 var players = Buffer[Player]()
 var turn = 0
-var deck = Deck(Buffer[Card]())
+var deck = Deck(Buffer[Card]())                             // placeholders for information
 var tableCards = Buffer[Card]()
 var origDeck = Deck(Buffer[Card]())
 
@@ -19,7 +21,7 @@ var origDeck = Deck(Buffer[Card]())
 def loadGame(input: Reader) =
   var atLeast2players = false
   var turnDecided = false
-  var deckAdded = false
+  var deckAdded = false                                     // checks for if the loading was successful
   var origDeckAdded = false
 
   val lineReader = BufferedReader(input)
@@ -37,34 +39,33 @@ def loadGame(input: Reader) =
         if currentLine.startsWith("#") then
           currentChunk = currentChunk :+ currentLine
           currentLine = lineReader.readLine()
-          while currentLine != null && !currentLine.startsWith("#") do
+          while currentLine != null && !currentLine.startsWith("#") do            // parsing the save file
             currentChunk = currentChunk :+ currentLine
             currentLine = lineReader.readLine()
           currentChunk = currentChunk.filter( !_.isBlank ).map( _.trim )
           val chunkHeader = currentChunk.headOption
           chunkHeader.foreach({
             _.toLowerCase match
-              case "#game metadata" =>  var playerAmount = countPlayers(currentChunk)
-                                        var playersAndNum = getPlayerNamesAndNumbers(currentChunk)
+              case "#game metadata" =>  var playersAndNum = getPlayerNamesAndNumbers(currentChunk)    // adding players, checking that atleast 2 were added
                                         for p <- playersAndNum do
                                            players += Player(p._1, Hand(Buffer[Card]()), Stack(Buffer[Card]()))
                                         if players.length >= 2 then atLeast2players = true else throw CorruptedFileException(s"\nReason : Did not find 2 players\nCurrent players : (${players.map(_.name).mkString(", ")}).")
-              case "#turn"          =>  val numOption = currentChunk.last.toIntOption       // maybe an int, check if it is
+              case "#turn"          =>  val numOption = currentChunk.last.toIntOption       // may not be an int, check if it is
                                         numOption match
                                           case n: Some[Int] => turn = n.get                 // if an int, get it
                                           case _            => throw CorruptedFileException(s"\nReason : Turn number invalid, '$numOption'")
-                                        if turn < 0 then throw CorruptedFileException(s"\nReason : Turn number cannot be negative : ${turn}")   // turn cannot be negative
+                                        if turn < 0 then throw CorruptedFileException(s"\nReason : Turn number cannot be negative : ${turn}")
                                         turnDecided = true
               case "#deck"          =>  val cards = getCards(currentChunk)
-                                        deck = Deck(cards)
+                                        deck = Deck(cards)                                  // adding deck
                                         deckAdded = true
               case "#origdeck"      =>  val cards = getCards(currentChunk)
                                         if cards.length < ((players.length * 4) + 4) then throw CorruptedFileException(s"\nReason : Not enough cards in original deck to start a new round!\nOriginal deck length : ${cards.length}\nAmount needed to start a new round : ${players.length * 4} + 4 for the table.")
-                                        origDeck = Deck(cards)
+                                        origDeck = Deck(cards)                              // adding original deck for when a new round starts
                                         origDeckAdded = true
-              case "#table"          => val cards = getCards(currentChunk)
+              case "#table"          => val cards = getCards(currentChunk)                  // adding cards on the table
                                         tableCards = cards
-              case "#player1"       =>  var num = getPlayerNum(currentChunk.head, false)
+              case "#player1"       =>  var num = getPlayerNum(currentChunk.head, false)    // adding player information
                                         val cards = getCards(currentChunk)
                                         players(num - 1).hand = Hand(cards)
               case "#stack1"        =>  var num = getPlayerNum(currentChunk.head, false)
@@ -190,7 +191,7 @@ def loadGame(input: Reader) =
               case "#stack13"        => var num = getPlayerNum(currentChunk.head, true)
                                         val cards = getCards(currentChunk)
                                         players(num - 1).stack = Stack(cards)
-              case "#points13"       => var num = getPlayerNum(currentChunk.head, true)
+              case "#points13"       => var num = getPlayerNum(currentChunk.head, true)           // after 13 players, a full deck is not enough to give everyone new cards
                                         if currentChunk.last.toIntOption.isEmpty then
                                           throw CorruptedFileException(s"\nReason : Not a number: '${currentChunk.last}'")
                                         else players(num - 1).points = currentChunk.last.toInt
@@ -198,17 +199,18 @@ def loadGame(input: Reader) =
           })
         else currentLine = lineReader.readLine()
 
-      def countPlayers(input: Array[String]) =
-        input.count( _.toLowerCase.contains("player"))
 
-      def getPlayerNum(input: String, twoNum: Boolean) =
+      def getPlayerNum(input: String, twoNum: Boolean) =                  // helper function for getting the number of a player. twoNum is true if the number has 2 digits
         var playerNumOp = Option(0)
-        if !twoNum then     // if it is a one character number eg "2"
+        if !twoNum then
           playerNumOp = input.takeRight(1).toIntOption
-        else                // if it is a two character number eg "13"
+        else
           playerNumOp = input.takeRight(2).toIntOption
         var num = 0
-        if playerNumOp.isEmpty then throw CorruptedFileException(s"\nReason : Not a number: '$playerNumOp'") else num = playerNumOp.get
+        if playerNumOp.isEmpty then
+          throw CorruptedFileException(s"\nReason : Not a number: '$playerNumOp'")        // exception handling. cases when player "number" is not an int, and when a player by that number does not exist
+        else
+          num = playerNumOp.get
         if num > players.length then throw CorruptedFileException(s"\nReason : Trying to access information on player number '$num', but that player does not exist\nCurrent players and their numbers: ${players.zipWithIndex.map( p => (p._1.name, p._2 + 1)).mkString(", ")}")
         num
 
@@ -217,14 +219,14 @@ def loadGame(input: Reader) =
         playerRows = playerRows.map( _.replaceAll(" ", "").trim)
         if playerRows.isEmpty then throw CorruptedFileException(s"\nReason : No players found: '${playerRows.mkString("\n")}'")
         val result = Buffer[(String, Int)]()
-        for s <- playerRows do
+        for s <- playerRows do                                            // helper function for getting the numbers and names of players, used in 'game metadata' portion
           val name = s.split(":").last.trim
           val numOption = s.split(":").head.takeRight(1).toIntOption
           if numOption.isEmpty then throw CorruptedFileException(s"\nReason : Player number not found: '$s'")
           else result += ((name, numOption.get))
         result
 
-      def getCards(input: Array[String]) =
+      def getCards(input: Array[String]) =                                // getting cards from an array, parsing the "02C" etc. format
         val result = Buffer[Card]()
         for str <- input.tail do
           str.trim.toLowerCase match
@@ -298,6 +300,7 @@ def loadGameFromFile() =
   val fileName = "save.txt"
   val fileIn = FileReader(fileName)
   val linesIn = BufferedReader(fileIn)
+
   try
     val result = loadGame(linesIn)
     println("Game loaded successfully!\n")
@@ -321,7 +324,8 @@ def loadGameFromFile() =
 
     println(s"The game continues! Current points: \n${playersPoints.map( p => (p._1.name, p._2)).mkString("\n")}\n")
 
-    def newRound() =
+    def newRound() =                                      // function for starting a new round
+      
       playersPoints = players.map( p => (p, p.points) )                   // update player points
       deck = Deck(origDeck.cards.toBuffer)                                // reset deck to original
       turn += 1                                                           // change starting player
@@ -334,7 +338,7 @@ def loadGameFromFile() =
         player.hand = Hand(deck.selectRandomCards(4))                     // reset players hand
 
     while !{currentGame.table.players.exists( _.points >= 16)} do {             // continue while no player has atleast 16 points
-      while currentGame.table.players.exists( p => p.hand.cards.nonEmpty ) do   // progress if atleast one player still has cards in their hand
+      while currentGame.table.players.exists( p => p.hand.cards.nonEmpty ) do   // progress if atleast one player still has cards in their hand, mainly parsed from 'main.scala'
         breakable {
             for i <- 0 until 1 do
                 val currentPlayer = currentGame.table.players(turn % currentGame.table.players.length)
@@ -344,7 +348,7 @@ def loadGameFromFile() =
                 println(s"\nPlayer is now : ${currentPlayer.name}")
 
                 if currentGame.deck.cards.nonEmpty && previousPlayer.hand.cards.length < 4 then
-                  previousPlayer.hand.addCard(currentGame.deck.selectRandomCards(1).head)                 // as long as there are cards in the deck, add one to the previous players hand
+                  previousPlayer.hand.addCard(currentGame.deck.selectRandomCards(1).head)               // as long as there are cards in the deck, add one to the previous players hand
 
                 val handCardsIndexed = currentPlayer.hand.cards.zipWithIndex
                 var handCardIndex = 0                                                                   // temporary placeholder
@@ -383,11 +387,11 @@ def loadGameFromFile() =
 
                 if currentGame.table.cards.isEmpty then
                   currentPlayer.hand.removeCard(handCard)
-                  currentGame.table.addCardToTable(handCard)                                              // if table is empty, simply places the chosen card on the table
+                  currentGame.table.addCardToTable(handCard)                                            // if table is empty, simply places the chosen card on the table
                   println(s"Player ${currentPlayer.name} places $handCard on the table!")
                 else
                   val tableCardsIndexed = currentGame.table.cards.zipWithIndex
-                  var tableCardsIndexes = Buffer[Int]()                                                 //placeholder
+                  var tableCardsIndexes = Buffer[Int]()                                                 // placeholder
 
                   var input = readLine(s"What card(s) do you want in return? Separate multiple indexes with a comma ','\nCurrent table : ${tableCardsIndexed.mkString(" | ")}\n-> ").trim.replace(" ", "").split(",")
 
@@ -415,7 +419,7 @@ def loadGameFromFile() =
                   val tableCards = Buffer[Card]()
                   tableCardsIndexes.foreach( index => tableCards += tableCardsIndexed.filter( _._2 == index).map( pair => pair._1).head )
 
-                  currentGame.humanAlgorithm(currentGame.table, currentPlayer, handCard, tableCards)
+                  currentGame.humanAlgorithm(currentGame.table, currentPlayer, tableCards, handCard)
 
                 println("\n------------------------------------------------------------------------------------")
                 previousPlayer = currentPlayer
