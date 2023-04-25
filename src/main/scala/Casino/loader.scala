@@ -307,7 +307,8 @@ def loadGameFromFile() =
     var playTable = Table(tableCards, players)
     var currentGame = Game(playTable, deck)
     var playersPoints = players.map( p => (p, p.points) )
-    turn = if (turn - 1) < 0 then (players.length - 1) else ((turn - 1) % players.length)    // if turn is 0, previous player is the player at the last index, else its the previous player by index
+    var previousPlayer = if (turn - 1) < 0 then currentGame.table.players(players.length - 1) else currentGame.table.players((turn - 1) % players.length)    // if turn is 0, previous player is the player at the last index, else its the previous player by index
+    
 
     def findMax(playerNum: Buffer[(Player, Int)]) =
       var max = 0
@@ -319,8 +320,6 @@ def loadGameFromFile() =
     def tryToGetNumber(input: String) = Try {
       input.toInt                                         //helper function for exception handling
     }
-
-    var previousPlayer = if turn == 0 then currentGame.table.players.last else currentGame.table.players( turn - 1)
 
     println(s"The game continues! Current points: \n${playersPoints.map( p => (p._1.name, p._2)).mkString("\n")}\n")
 

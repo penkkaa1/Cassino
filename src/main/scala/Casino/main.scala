@@ -180,7 +180,7 @@ import scala.collection.mutable.ListBuffer
               val tableCards = Buffer[Card]()
               tableCardsIndexes.foreach( index => tableCards += tableCardsIndexed.filter( _._2 == index).map( pair => pair._1).head )     // add chosen cards to tableCards for the humanAlgorithm
 
-              currentGame.humanAlgorithm(currentGame.table, currentPlayer, tableCards, handCard)        
+              currentGame.humanAlgorithm(currentGame.table, currentPlayer, tableCards.distinct, handCard)     // .distinct so the player cant get multiple cards by cheating, e.g. by inputting (1,1,1)
 
 
             println("\n------------------------------------------------------------------------------------")
