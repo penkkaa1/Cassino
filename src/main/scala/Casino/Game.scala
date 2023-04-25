@@ -14,7 +14,7 @@ class Game(val table: Table, val deck: Deck):
     var result = Buffer[Buffer[Card]]()                                       // tracking the matched combinations
     var toDelete = Buffer[Card]()                                             // cards to be removed
 
-                                                     // if table is empty handled in 'main.scala'
+                                                     // case if table is empty is handled in 'main.scala'
 
     for i <- tableCards do
       if i.valueInTable == playedCard.valueInHand then                        // add table cards with the same value as the played one to be removed

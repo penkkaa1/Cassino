@@ -21,7 +21,7 @@ Programming 2 has taken a large portion of my "free" time, and I also attended T
 
 2.4.2023
 Massive progress since last update. I basically now have a playable, winnable text-based game with 2-N players. I added exceptions for user inputs,
-so far in my testing everything works. However, with more than ~2 players the deck gets too small, and because of that some duplicate cards get inputted into the game.
+so far in my testing everything works. However, with more than ~2 players the deck gets too small, and because of that some duplicate cards get input into the game.
 I sent an email regarding the subject. Next stop is the saving and loading, round system, and the more cards / decks being added with player count. After that, it's on to the GUI.
 I feel very positive at the moment. However I do have some IRL stuff coming up, for instance moving houses on the 17th. I will try to keep up the productivity I've had today and
 the past days.

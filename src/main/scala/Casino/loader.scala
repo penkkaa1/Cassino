@@ -352,12 +352,12 @@ def loadGameFromFile() =
 
                 val handCardsIndexed = currentPlayer.hand.cards.zipWithIndex
                 var handCardIndex = 0                                                                   // temporary placeholder
-                var userInput = readLine(s"What card do you want to play? Input the number next to the card.\nYour hand : ${handCardsIndexed.mkString(" | ")}\nCurrent table : ${currentGame.table.cards.mkString(" | ")}\n-> ").trim.replaceAll(" ", "")
+                var userInput = readLine(s"What card do you want to play? Input the number next to the card you want to play from your hand.\nYour hand : ${handCardsIndexed.mkString(" | ")}\nCurrent table : ${currentGame.table.cards.mkString(" | ")}\n-> ").trim.replaceAll(" ", "")
 
                 while userInput == "/halt" do
                   halt(players, turn, deck, origDeck, currentGame.table.cards)
                   println(s"\nPlayer is now : ${currentPlayer.name}")
-                  userInput = readLine(s"What card do you want to play? Input the number next to the card.\nYour hand : ${handCardsIndexed.mkString(" | ")}\nCurrent table : ${currentGame.table.cards.mkString(" | ")}\n-> ").trim.replaceAll(" ", "")
+                  userInput = readLine(s"What card do you want to play? Input the number next to the card you want to play from your hand.\nYour hand : ${handCardsIndexed.mkString(" | ")}\nCurrent table : ${currentGame.table.cards.mkString(" | ")}\n-> ").trim.replaceAll(" ", "")
 
 
                 def tryIsThisInRange(input: String) = Try {
@@ -369,13 +369,13 @@ def loadGameFromFile() =
 
                 while numberTest.isFailure || rangeTest.isFailure do
                   if numberTest.isFailure then
-                    userInput = readLine(s"\nUnknown number : '$userInput'. Please input the integer next to the card you want to play.\nYour hand : ${handCardsIndexed.mkString(" | ")}\nCurrent table : ${currentGame.table.cards.mkString(" | ")}\n-> ").trim.replaceAll(" ", "")
+                    userInput = readLine(s"\nUnknown number : '$userInput'. Please input the number next to the card you want to play from your hand.\nYour hand : ${handCardsIndexed.mkString(" | ")}\nCurrent table : ${currentGame.table.cards.mkString(" | ")}\n-> ").trim.replaceAll(" ", "")
                   else if rangeTest.isFailure then
-                    userInput = readLine(s"\nGiven number '$userInput' is not in the acceptable range. Please input the integer next to the card you want to play.\nYour hand : ${handCardsIndexed.mkString(" | ")}\nCurrent table : ${currentGame.table.cards.mkString(" | ")}\n-> ").trim.replaceAll(" ", "")
+                    userInput = readLine(s"\nGiven number '$userInput' is not in the acceptable range. Please input the number next to the card you want to play from your hand.\nYour hand : ${handCardsIndexed.mkString(" | ")}\nCurrent table : ${currentGame.table.cards.mkString(" | ")}\n-> ").trim.replaceAll(" ", "")
                   while userInput == "/halt" do
                     halt(players, turn, deck, origDeck, currentGame.table.cards)
                     println(s"\nPlayer is now : ${currentPlayer.name}")
-                    userInput = readLine(s"What card do you want to play? Input the number next to the card.\nYour hand : ${handCardsIndexed.mkString(" | ")}\nCurrent table : ${currentGame.table.cards.mkString(" | ")}\n-> ").trim.replaceAll(" ", "")
+                    userInput = readLine(s"What card do you want to play? Input the number next to the card you want to play from your hand.\nYour hand : ${handCardsIndexed.mkString(" | ")}\nCurrent table : ${currentGame.table.cards.mkString(" | ")}\n-> ").trim.replaceAll(" ", "")
                   numberTest = tryToGetNumber(userInput)
                   rangeTest = tryIsThisInRange(userInput)
 
@@ -393,7 +393,7 @@ def loadGameFromFile() =
                   val tableCardsIndexed = currentGame.table.cards.zipWithIndex
                   var tableCardsIndexes = Buffer[Int]()                                                 // placeholder
 
-                  var input = readLine(s"What card(s) do you want in return? Separate multiple indexes with a comma ','\nCurrent table : ${tableCardsIndexed.mkString(" | ")}\n-> ").trim.replace(" ", "").split(",")
+                  var input = readLine(s"What card(s) do you want in return? Separate multiple numbers with a comma ','\nCurrent table : ${tableCardsIndexed.mkString(" | ")}\n-> ").trim.replace(" ", "").split(",")
 
                   def tryToGetNumbers(input: Array[String]) = Try {
                     input.map( _.toInt)
@@ -408,9 +408,9 @@ def loadGameFromFile() =
 
                   while numbersTest.isFailure || rangeTests.isFailure do
                     if numbersTest.isFailure then
-                      input = readLine(s"\nUnknown numbers : (${input.mkString(", ")}). Please only input the integers next to the cards you want to pick up.\nWhat card(s) do you want in return? Separate multiple card indexes with a comma ','\nCurrent table : ${tableCardsIndexed.mkString(" | ")}\n-> ").trim.replace(" ", "").split(",")
+                      input = readLine(s"\nUnknown numbers : (${input.mkString(", ")}). Please only input the numbers next to the cards you want to pick up.\nWhat card(s) do you want in return? Separate multiple numbers with a comma ','\nCurrent table : ${tableCardsIndexed.mkString(" | ")}\n-> ").trim.replace(" ", "").split(",")
                     else if rangeTests.isFailure then
-                      input = readLine(s"\nAtleast one of the given numbers was not in the acceptable range: (${input.mkString(", ")}).\nWhat card(s) do you want in return? Separate multiple indexes with a comma ','\nCurrent table : ${tableCardsIndexed.mkString(" | ")}\n-> ").trim.replace(" ", "").split(",")
+                      input = readLine(s"\nAtleast one of the given numbers was not in the acceptable range: (${input.mkString(", ")}).\nWhat card(s) do you want in return? Separate multiple numbers with a comma ','\nCurrent table : ${tableCardsIndexed.mkString(" | ")}\n-> ").trim.replace(" ", "").split(",")
                     numbersTest = tryToGetNumbers(input)
                     rangeTests = tryIfTheseAreInRange(input)
                   tableCardsIndexes = input.map(_.toInt).toBuffer

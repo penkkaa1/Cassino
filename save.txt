@@ -1,62 +1,133 @@
 save
 #game metadata
 Player1: Aaron
-Player2: Niko
+Player2: Pekka
 
 
 #turn
-1
+0
 
 
 #player1
-03C
-03H
-03S
-06D
+06S
+AcS
+05D
+KnS
 #stack1
-02S
-02H
-02C
-06H
 #points1
 0
 
 
 #player2
-03D
-06H
-06D
+AcD
+03C
 06C
+KnH
 #stack2
 #points2
 0
 
-#player3
 
 #table
-06C
+07H
+AcC
+08C
+10S
 
 
 #deck
-06S
+KnC
+04C
+02S
+QnH
+10D
+08H
+JkS
+QnS
+07C
+04S
+05S
+07D
+08S
+02C
+JkH
+03H
+08D
+06H
+10C
+09C
+05H
+09S
+JkC
+03D
+09H
+AcH
 02D
-06S
+07S
+QnC
+10H
+KnD
+06D
+04D
+09D
+04H
+05C
+03S
+JkD
+QnD
+02H
 
 
 #origDeck
 02H
-02D
-02C
-02S
 03H
-03D
+04H
+05H
+06H
+07H
+08H
+09H
+10H
+JkH
+QnH
+KnH
+AcH
+02S
 03S
+04S
+05S
+06S
+07S
+08S
+09S
+10S
+JkS
+QnS
+KnS
+AcS
+02D
+03D
+04D
+05D
+06D
+07D
+08D
+09D
+10D
+JkD
+QnD
+KnD
+AcD
+02C
 03C
+04C
+05C
 06C
-06D
-06S
-06H
-06C
-06D
-06S
-06H
+07C
+08C
+09C
+10C
+JkC
+QnC
+KnC
+AcC
